@@ -10,7 +10,11 @@ import math
 import turtle
 import random
 
-turtle.tracer(50000, delay=0)
+
+"""
+basic setup for the window animation
+"""
+turtle.tracer(50000, delay=0) #tracer(n,delay) , n = 0 can see the drawing progress :>
 turtle.register_shape("dot", ((-3,-3), (-3,3), (3,3), (3,-3)))
 turtle.register_shape("tri", ((-3, -2), (0, 3), (3, -2), (0, 0)))
 turtle.speed(0)
@@ -27,7 +31,7 @@ class Maze(object):
         turtle.setworldcoordinates(0, 0, self.width, self.height)
         self.blocks = []
         self.update_cnt = 0
-        self.one_px = float(turtle.window_width()) / float(self.width) / 2
+        self.one_px = float(turtle.window_width()) / float(self.width) / 2 #window display
 
         self.beacons = []
         for y, line in enumerate(self.maze):
@@ -36,7 +40,7 @@ class Maze(object):
                     nb_y = self.height - y - 1
                     self.blocks.append((x, nb_y))
                     if block == 2:
-                        self.beacons.extend(((x, nb_y), (x+1, nb_y), (x, nb_y+1), (x+1, nb_y+1)))
+                        self.beacons.extend(((x, nb_y), (x+1, nb_y), (x, nb_y+1), (x+1, nb_y+1))) #set beacon at each corner 
 
     def draw(self):
         for x, y in self.blocks:
