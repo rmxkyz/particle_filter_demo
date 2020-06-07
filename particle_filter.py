@@ -24,10 +24,11 @@ maze_data = ( ( 2, 0, 1, 0, 0 ),
               ( 0, 0, 2, 0, 1 ))
 """
 
-# 0 - empty square
-# 1 - occupied square
-# 2 - occupied square with a beacon at each corner, detectable by the robot
+# 0 - empty square, space can be travel
+# 1 - filled square, block cant be travel
+# 2 - filled square with a beacon at each corner, detectable by the robot(source)
 
+#environment the turtle is placed
 maze_data = ( ( 1, 1, 0, 0, 2, 0, 0, 0, 0, 1 ),
               ( 1, 2, 0, 0, 1, 1, 0, 0, 0, 0 ),
               ( 0, 1, 1, 0, 0, 0, 0, 1, 0, 1 ),
@@ -39,8 +40,19 @@ maze_data = ( ( 1, 1, 0, 0, 2, 0, 0, 0, 0, 1 ),
               ( 0, 0, 0, 0, 1, 0, 0, 0, 1, 0 ),
               ( 0, 0, 1, 0, 0, 2, 1, 1, 1, 0 ))
 
-PARTICLE_COUNT = 2000    # Total number of particles
+PARTICLE_COUNT = 2000    # Total number of particles, these particles are randomly distribute in the map at first intance,
+                         # more particles  means the robot have more information to trace the true position of the turtle
+                         
 
+                    #whole concept first:
+                         # by observing how likely each particle is relate to the turtle, giving it weight(higher weight means more alike)
+                         # and resampling, dropout the unlikely particle and resample particles in the segment/region that is have higher weight.
+                         # At this phase, our turtle move, so particles now move with same vector as turtle does.(updating each particles' weights)
+                         # After finished moving, we get new particles distribution in a new segment/region, calculate its' weights and resampling,
+                         # the turtle moving again, then repeat the step until the distribution of particles converge, at this time robot can find the
+                         # turtle's location. *reminder: The particles distribution may be diverge again, but not in this program i guess.
+
+     
 ROBOT_HAS_COMPASS = True # Does the robot know where north is? If so, it
 # makes orientation a lot easier since it knows which direction it is facing.
 # If not -- and that is really fascinating -- the particle filter can work
@@ -48,8 +60,10 @@ ROBOT_HAS_COMPASS = True # Does the robot know where north is? If so, it
 # with 3000+ particles, it obviously needs lots more hypotheses as a particle
 # now has to correctly match not only the position but also the heading.
 
+# I guess the heading will change after turtle hit the wall 
+
 # ------------------------------------------------------------------------
-# Some utility functions
+# Some utility functions for adding noise to control the error between agent to particle(environment) 
 
 def add_noise(level, *coords):
     return [x + random.uniform(-level, level) for x in coords]
@@ -63,7 +77,7 @@ def add_some_noise(*coords):
 # This is just a gaussian kernel I pulled out of my hat, to transform
 # values near to robbie's measurement => 1, further away => 0
 sigma2 = 0.9 ** 2
-def w_gauss(a, b):
+def w_gauss(a, b): #gaussian distribution formula, greater sigma makes the curve looks flat, lower sigma makes the curve more peak
     error = a - b
     g = math.e ** -(error ** 2 / (2 * sigma2))
     return g
@@ -118,7 +132,7 @@ class WeightedDistribution(object):
 class Particle(object):
     def __init__(self, x, y, heading=None, w=1, noisy=False):
         if heading is None:
-            heading = random.uniform(0, 360)
+            heading = random.uniform(0, 360) #randomly give a direction, same as what I assume at the beginning of the program
         if noisy:
             x, y, heading = add_some_noise(x, y, heading)
 
@@ -128,17 +142,17 @@ class Particle(object):
         self.w = w
 
     def __repr__(self):
-        return "(%f, %f, w=%f)" % (self.x, self.y, self.w)
+        return "(%f, %f, w=%f)" % (self.x, self.y, self.w) #particle object x_coordinate, y_coordinate, weight object
 
-    @property
+    @property #encapsulation, only callable
     def xy(self):
         return self.x, self.y
 
-    @property
+    @property #encapsulation, only callable
     def xyh(self):
         return self.x, self.y, self.h
 
-    @classmethod
+    @classmethod #特殊寫法 我也不是很懂 只知道cls可以取代self
     def create_random(cls, count, maze):
         return [cls(*maze.random_free_place()) for _ in range(0, count)]
 
