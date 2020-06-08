@@ -63,7 +63,8 @@ ROBOT_HAS_COMPASS = True # Does the robot know where north is? If so, it
 # I guess the heading will change after turtle hit the wall 
 
 # ------------------------------------------------------------------------
-# Some utility functions for adding noise to control the error between agent to particle(environment) 
+# Some utility functions for adding noise to control the error between agent to particle(environment), these functions are 
+# all defined by user, as long as the bias and variance wrong getting too big then should be fine
 
 def add_noise(level, *coords):
     return [x + random.uniform(-level, level) for x in coords]
@@ -99,8 +100,8 @@ def compute_mean_point(particles):
     if m_count == 0:
         return -1, -1, False
 
-    m_x /= m_count
-    m_y /= m_count
+    m_x /= m_count #compute x_mean
+    m_y /= m_count #compute y_mean
 
     # Now compute how good that mean is -- check how many particles
     # actually are in the immediate vicinity
@@ -109,7 +110,8 @@ def compute_mean_point(particles):
         if world.distance(p.x, p.y, m_x, m_y) < 1:
             m_count += 1
 
-    return m_x, m_y, m_count > PARTICLE_COUNT * 0.95
+    return m_x, m_y, m_count > PARTICLE_COUNT * 0.95 # i dun know why using 0.95 as threshold, but here just use 95%
+                                                     # as the confidence represent how reliable these particles are locate vicinity
 
 # ------------------------------------------------------------------------
 class WeightedDistribution(object):
@@ -162,25 +164,27 @@ class Particle(object):
         """
         return maze.distance_to_nearest_beacon(*self.xy)
 
-    def advance_by(self, speed, checker=None, noisy=False):
+    def advance_by(self, speed, checker=None, noisy=False): #moving turtle and robot with direction
         h = self.h
-        if noisy:
+        if noisy: #create noisy when moving, moving may cause error so here adding error into particles
             speed, h = add_little_noise(speed, h)
             h += random.uniform(-3, 3) # needs more noise to disperse better
-        r = math.radians(h)
+        r = math.radians(h) #sensor radian
         dx = math.sin(r) * speed
         dy = math.cos(r) * speed
-        if checker is None or checker(self, dx, dy):
+        if checker is None or checker(self, dx, dy): #if checker is none, won't move
             self.move_by(dx, dy)
             return True
         return False
 
-    def move_by(self, x, y):
+    def move_by(self, x, y): # update particles
         self.x += x
         self.y += y
 
 # ------------------------------------------------------------------------
-class Robot(Particle):
+class Robot(Particle): #initialize robot with speed 0.2, random_direction, distance to nearest beacon.
+                       #Although move() function say the movement is stochastic, but I think it still 
+                       #follows particles and turtle's movement. 
     speed = 0.2
 
     def __init__(self, maze):
@@ -198,7 +202,7 @@ class Robot(Particle):
         it only can measure the distance to the nearest beacon(!)
         and is not very accurate at that too!
         """
-        return add_little_noise(super(Robot, self).read_sensor(maze))[0]
+        return add_little_noise(super(Robot, self).read_sensor(maze))[0] #distance between robot and beacon
 
     def move(self, maze):
         """
@@ -211,7 +215,7 @@ class Robot(Particle):
                 break
             # Bumped into something or too long in same direction,
             # chose random new direction
-            self.chose_random_direction()
+            self.chose_random_direction() #well, i didn't see any sentimental functionality in here
 
 # ------------------------------------------------------------------------
 
@@ -229,9 +233,9 @@ while True:
     # Update particle weight according to how good every particle matches
     # robbie's sensor reading
     for p in particles:
-        if world.is_free(*p.xy):
+        if world.is_free(*p.xy): #not sure what is world.is_free() actually means in real word and in the program
             p_d = p.read_sensor(world)
-            p.w = w_gauss(r_d, p_d)
+            p.w = w_gauss(r_d, p_d) #compute Euclidean distance between particle and robot
         else:
             p.w = 0
 
@@ -270,7 +274,7 @@ while True:
     # ---------- Move things ----------
     old_heading = robbie.h
     robbie.move(world)
-    d_h = robbie.h - old_heading
+    d_h = robbie.h - old_heading #delta h, move particles with same speed and distance respect to turtle/robot
 
     # Move particles according to my belief of movement (this may
     # be different than the real movement, but it's all I got)
