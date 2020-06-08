@@ -215,7 +215,8 @@ class Robot(Particle): #initialize robot with speed 0.2, random_direction, dista
                 break
             # Bumped into something or too long in same direction,
             # chose random new direction
-            self.chose_random_direction() #well, i didn't see any sentimental functionality in here
+            self.chose_random_direction() #well, i didn't see any sentimental functionality in here, I guess it 
+                                          #will be triggered when bumped into wall right? as author mention above
 
 # ------------------------------------------------------------------------
 
