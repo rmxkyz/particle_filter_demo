@@ -41,16 +41,16 @@ maze_data = ( ( 1, 1, 0, 0, 2, 0, 0, 0, 0, 1 ),
               ( 0, 0, 1, 0, 0, 2, 1, 1, 1, 0 ))
 
 PARTICLE_COUNT = 2000    # Total number of particles, these particles are randomly distribute in the map at first intance,
-                         # more particles  means the robot have more information to trace the true position of the turtle
+                         # more particles  means the robot have more information to trace the true position of the robot(turtle)
                          
 
-                    #whole concept first:
-                         # by observing how likely each particle is relate to the turtle, giving it weight(higher weight means more alike)
-                         # and resampling, dropout the unlikely particle and resample particles in the segment/region that is have higher weight.
+                    #whole concept first:   #btw, robot and turtle are the same for convention :> 
+                         # by observing how likely each particle is relate to the robot/turtle, giving it weight(higher weight means more alike)
+                         # and resampling, dropout the unlikely particle and resample particles in the segment/region that have higher weight.
                          # At this phase, our turtle move, so particles now move with same vector as turtle does.(updating each particles' weights)
                          # After finished moving, we get new particles distribution in a new segment/region, calculate its' weights and resampling,
-                         # the turtle moving again, then repeat the step until the distribution of particles converge, at this time robot can find the
-                         # turtle's location. *reminder: The particles distribution may be diverge again, but not in this program i guess.
+                         # the turtle moving again, then repeat the step until the distribution of particles converge, at this time the gery cluster
+                         # can find the turtle's location. *reminder: The particles distribution may be diverge again, but not in this program i guess.
 
      
 ROBOT_HAS_COMPASS = True # Does the robot know where north is? If so, it
@@ -111,7 +111,7 @@ def compute_mean_point(particles):
             m_count += 1
 
     return m_x, m_y, m_count > PARTICLE_COUNT * 0.95 # i dun know why using 0.95 as threshold, but here just use 95%
-                                                     # as the confidence represent how reliable these particles are locate vicinity
+                                                     # as the confidence represent how reliable these particles are locate vicinity(cluster)
 
 # ------------------------------------------------------------------------
 class WeightedDistribution(object):
@@ -164,7 +164,7 @@ class Particle(object):
         """
         return maze.distance_to_nearest_beacon(*self.xy)
 
-    def advance_by(self, speed, checker=None, noisy=False): #moving turtle and robot with direction
+    def advance_by(self, speed, checker=None, noisy=False): #moving turtle and particle with same direction
         h = self.h
         if noisy: #create noisy when moving, moving may cause error so here adding error into particles
             speed, h = add_little_noise(speed, h)
@@ -182,9 +182,8 @@ class Particle(object):
         self.y += y
 
 # ------------------------------------------------------------------------
-class Robot(Particle): #initialize robot with speed 0.2, random_direction, distance to nearest beacon.
-                       #Although move() function say the movement is stochastic, but I think it still 
-                       #follows particles and turtle's movement. 
+class Robot(Particle): #initialize robot with speed 0.2, random_direction, distance to nearest beacon. Although move() 
+                       #function say the movement is stochastic, but I think particles still follow turtle's movement. 
     speed = 0.2
 
     def __init__(self, maze):
@@ -202,7 +201,7 @@ class Robot(Particle): #initialize robot with speed 0.2, random_direction, dista
         it only can measure the distance to the nearest beacon(!)
         and is not very accurate at that too!
         """
-        return add_little_noise(super(Robot, self).read_sensor(maze))[0] #distance between robot and beacon
+        return add_little_noise(super(Robot, self).read_sensor(maze))[0] #distance between turtle and beacon
 
     def move(self, maze):
         """
