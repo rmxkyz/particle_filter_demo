@@ -28,17 +28,17 @@ class Maze(object):
         self.maze = maze
         self.width   = len(maze[0])
         self.height  = len(maze)
-        turtle.setworldcoordinates(0, 0, self.width, self.height)
+        turtle.setworldcoordinates(0, 0, self.width, self.height) #draw the canvas from x: 0~self.width, y: 0~self.height
         self.blocks = []
         self.update_cnt = 0
         self.one_px = float(turtle.window_width()) / float(self.width) / 2 #window display
 
         self.beacons = []
-        for y, line in enumerate(self.maze):
+        for y, line in enumerate(self.maze): #maze[y][x]
             for x, block in enumerate(line):
-                if block:
-                    nb_y = self.height - y - 1
-                    self.blocks.append((x, nb_y))
+                if block: #is not 0
+                    nb_y = self.height - y - 1 #set(x,y) to draw block
+                    self.blocks.append((x, nb_y)) #append(x,y) into block list []
                     if block == 2:
                         self.beacons.extend(((x, nb_y), (x+1, nb_y), (x, nb_y+1), (x+1, nb_y+1))) #set beacon at each corner 
 
@@ -64,7 +64,7 @@ class Maze(object):
     def weight_to_color(self, weight):
         return "#%02x00%02x" % (int(weight * 255), int((1 - weight) * 255))
 
-    def is_in(self, x, y):
+    def is_in(self, x, y): #locate in canvas range
         if x < 0 or y < 0 or x > self.width or y > self.height:
             return False
         return True
@@ -73,7 +73,7 @@ class Maze(object):
         if not self.is_in(x, y):
             return False
 
-        yy = self.height - int(y) - 1
+        yy = self.height - int(y) - 1 #I dun understand this part
         xx = int(x)
         return self.maze[yy][xx] == 0
 
@@ -127,18 +127,18 @@ class Maze(object):
     def random_free_place(self):
         while True:
             x, y = self.random_place()
-            if self.is_free(x, y):
+            if self.is_free(x, y): #validate do x,y is in canvas
                 return x, y
 
     def distance(self, x1, y1, x2, y2):
-        return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+        return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2) #compute Euclidean Distance
 
     def distance_to_nearest_beacon(self, x, y):
-        d = 99999
+        d = 99999 #init to max, later update if x,y < d
         for c_x, c_y in self.beacons:
             distance = self.distance(c_x, c_y, x, y)
             if distance < d:
                 d = distance
                 d_x, d_y = c_x, c_y
 
-        return d
+        return d #update beacon signal
