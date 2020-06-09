@@ -110,8 +110,8 @@ def compute_mean_point(particles):
         if world.distance(p.x, p.y, m_x, m_y) < 1:
             m_count += 1
 
-    return m_x, m_y, m_count > PARTICLE_COUNT * 0.95 # i dun know why using 0.95 as threshold, but here just use 95%
-                                                     # as the confidence represent how reliable these particles are locate vicinity(cluster)
+    return m_x, m_y, m_count > PARTICLE_COUNT * 0.95 # i dun know why using 0.95 as threshold, but here just use 95% as the 
+                                                     # confidence represent how reliable these particles are locate vicinity(cluster)
 
 # ------------------------------------------------------------------------
 class WeightedDistribution(object):
